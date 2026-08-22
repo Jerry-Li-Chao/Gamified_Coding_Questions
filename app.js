@@ -13,7 +13,7 @@ const state = {
 
 const stages = [
   { title: "Mark the search boundaries", text: "Select the <b>Left</b> tool, then place it at index 0. Place the <b>Right</b> tool at index 6." },
-  { title: "The same problem, made smaller", text: "Move either boundary and watch the inactive values fade. This is binary search’s core move: solve the same search problem inside a smaller sorted slice." },
+  { title: "The same problem, made smaller", text: "Move either boundary and watch values outside it fade. Each move turns the original search into the same problem over a smaller sorted slice." },
   { title: "Keep the last candidate alive", text: "Why does the loop use <b>left &lt;= right</b>? Inspect the one-cell case, then choose the condition that still checks it." },
   { title: "Cut the range safely in half", text: "Compute the middle index. Floor division gives us one real array index when the range has an even number of positions." },
   { title: "Compare, then discard half", text: "Compare the target with the glowing middle value. Which half can be safely discarded?" },
