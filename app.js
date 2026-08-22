@@ -42,11 +42,16 @@ const codeLines = [
 const $ = (selector) => document.querySelector(selector);
 const rig = $("#array-rig");
 const modal = $("#concept-modal");
+let draggedPointer = null;
+let lastDragIndex = null;
 
 function renderArray() {
   rig.innerHTML = state.nums.map((value, index) => {
     const outside = state.left !== null && state.right !== null && (index < state.left || index > state.right);
-    const markers = `${state.left === index ? '<span class="marker left" draggable="true" data-pointer="left" title="Drag Left to another index">L</span>' : ''}${state.right === index ? '<span class="marker right" draggable="true" data-pointer="right" title="Drag Right to another index">R</span>' : ''}`;
+    const canDrag = state.stage <= 1;
+    const leftActive = state.activeTool === "left" ? " active" : "";
+    const rightActive = state.activeTool === "right" ? " active" : "";
+    const markers = `${state.left === index ? `<span class="marker-handle left${leftActive}" data-pointer="left" title="Drag the Left pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Left pointer"' : ""}><span class="marker">L</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}${state.right === index ? `<span class="marker-handle right${rightActive}" data-pointer="right" title="Drag the Right pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Right pointer"' : ""}><span class="marker">R</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}`;
     const classes = ["array-cell", value === state.target ? "is-target" : "", outside ? "out-of-range" : "", state.mid === index ? "is-mid" : "", state.found && state.mid === index ? "found" : ""].join(" ");
     const height = 18 + (value / 30) * 126;
     return `<button class="${classes}" data-index="${index}" type="button" aria-label="Value ${value} at index ${index}">
@@ -58,28 +63,52 @@ function renderArray() {
   }).join("");
   rig.classList.toggle("hide-histograms", !state.histograms);
   rig.querySelectorAll(".array-cell").forEach(cell => cell.addEventListener("click", () => placePointer(Number(cell.dataset.index))));
-  rig.querySelectorAll(".marker").forEach(marker => marker.addEventListener("dragstart", event => {
-    event.stopPropagation();
-    event.dataTransfer.setData("text/plain", marker.dataset.pointer);
-    event.dataTransfer.effectAllowed = "move";
-  }));
-  rig.querySelectorAll(".array-cell").forEach(cell => {
-    cell.addEventListener("dragover", event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; });
-    cell.addEventListener("drop", event => {
+  rig.querySelectorAll(".marker-handle[role='slider']").forEach(marker => {
+    marker.addEventListener("pointerdown", startPointerDrag);
+    marker.addEventListener("keydown", event => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       event.preventDefault();
-      event.stopPropagation();
-      const pointer = event.dataTransfer.getData("text/plain");
-      if (pointer === "left" || pointer === "right") {
-        state.activeTool = pointer;
-        placePointer(Number(cell.dataset.index));
-      }
+      state.activeTool = marker.dataset.pointer;
+      const current = state[marker.dataset.pointer];
+      placePointer(current + (event.key === "ArrowRight" ? 1 : -1));
     });
   });
   updateRangeSentence();
 }
 
+function startPointerDrag(event) {
+  if (state.stage > 1) return;
+  event.preventDefault();
+  event.stopPropagation();
+  draggedPointer = event.currentTarget.dataset.pointer;
+  lastDragIndex = state[draggedPointer];
+  state.activeTool = draggedPointer;
+  document.body.classList.add("is-dragging-pointer");
+  render();
+}
+
+function moveDraggedPointer(event) {
+  if (!draggedPointer) return;
+  event.preventDefault();
+  const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest(".array-cell");
+  if (!cell) return;
+  const index = Number(cell.dataset.index);
+  if (index === lastDragIndex) return;
+  lastDragIndex = index;
+  state.activeTool = draggedPointer;
+  placePointer(index);
+}
+
+function stopPointerDrag() {
+  if (!draggedPointer) return;
+  draggedPointer = null;
+  lastDragIndex = null;
+  document.body.classList.remove("is-dragging-pointer");
+}
+
 function placePointer(index) {
   if (state.stage > 1 || state.found) return;
+  if (index < 0 || index >= state.nums.length) return nudgeInvalid("That pointer is already at the edge of the array.");
   if (state.activeTool === "left") {
     if (state.right !== null && index > state.right) return nudgeInvalid("Left cannot pass Right — that would make the range empty.");
     state.left = index;
@@ -150,12 +179,17 @@ function renderCoach() {
 }
 
 function renderCode() {
+  const renderedCodeLines = [...codeLines];
+  if (state.stage === 1 && state.left !== null && state.right !== null) {
+    renderedCodeLines[2] = `        left = <span class="num">${state.left}</span> <span class="comment"># current Left pointer</span>`;
+    renderedCodeLines[3] = `        right = <span class="num">${state.right}</span> <span class="comment"># current Right pointer</span>`;
+  }
   let revealed = 2;
   if (state.stage >= 1) revealed = 4;
   if (state.stage >= 3) revealed = 6;
   if (state.stage >= 4) revealed = 14;
   if (state.stage >= 5) revealed = 16;
-  $("#code-block").innerHTML = codeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === revealed - 1 ? "revealed" : ""}">${line || " "}</span>`).join("");
+  $("#code-block").innerHTML = renderedCodeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === revealed - 1 ? "revealed" : ""}">${line || " "}</span>`).join("");
   const notes = [
     "Start with the function shell. The game will turn each idea into Python.",
     "The boundaries are inclusive: both ends are still possible answers.",
@@ -164,7 +198,10 @@ function renderCode() {
     "Floor division converts the midpoint into a valid integer index.",
     "Found it. Returning mid gives the target’s index.",
   ];
-  $("#code-note").innerHTML = `<span class="note-pin">✦</span><div><strong>WHY THIS LINE?</strong><p>${notes[state.stage]}</p></div>`;
+  const note = state.stage === 1 && state.left !== null && state.right !== null
+    ? `Live state: <b>left = ${state.left}</b>, <b>right = ${state.right}</b>. Drag either handle and these values update with the active range.`
+    : notes[state.stage];
+  $("#code-note").innerHTML = `<span class="note-pin">✦</span><div><strong>${state.stage === 1 ? "LIVE POINTER STATE" : "WHY THIS LINE?"}</strong><p>${note}</p></div>`;
 }
 
 function updateProgress() {
@@ -176,7 +213,12 @@ function updateProgress() {
 }
 
 function render() {
-  document.querySelectorAll(".pointer-tool").forEach(tool => tool.classList.toggle("active", tool.dataset.tool === state.activeTool));
+  document.querySelectorAll(".pointer-tool").forEach(tool => {
+    tool.classList.toggle("active", tool.dataset.tool === state.activeTool);
+    tool.disabled = state.stage > 1;
+  });
+  $("#active-pointer-mode").textContent = state.stage <= 1 ? "NOW MOVING" : "POINTERS LOCKED";
+  $("#active-pointer-name").textContent = state.activeTool.toUpperCase();
   renderArray();
   renderCoach();
   renderCode();
@@ -283,5 +325,8 @@ $("#histogram-toggle").addEventListener("click", () => {
 $("#modal-close").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
 document.addEventListener("keydown", event => { if (event.key === "Escape") closeModal(); });
+document.addEventListener("pointermove", moveDraggedPointer, { passive: false });
+document.addEventListener("pointerup", stopPointerDrag);
+document.addEventListener("pointercancel", stopPointerDrag);
 
 render();
