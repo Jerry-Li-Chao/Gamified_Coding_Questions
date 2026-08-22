@@ -47,7 +47,7 @@ function renderArray() {
   rig.innerHTML = state.nums.map((value, index) => {
     const outside = state.left !== null && state.right !== null && (index < state.left || index > state.right);
     const markers = `${state.left === index ? '<span class="marker left" draggable="true" data-pointer="left" title="Drag Left to another index">L</span>' : ''}${state.right === index ? '<span class="marker right" draggable="true" data-pointer="right" title="Drag Right to another index">R</span>' : ''}`;
-    const classes = ["array-cell", outside ? "out-of-range" : "", state.mid === index ? "is-mid" : "", state.found && state.mid === index ? "found" : ""].join(" ");
+    const classes = ["array-cell", value === state.target ? "is-target" : "", outside ? "out-of-range" : "", state.mid === index ? "is-mid" : "", state.found && state.mid === index ? "found" : ""].join(" ");
     const height = 18 + (value / 30) * 126;
     return `<button class="${classes}" data-index="${index}" type="button" aria-label="Value ${value} at index ${index}">
       <span class="histogram" style="height:${height}px"></span>
@@ -91,7 +91,9 @@ function placePointer(index) {
   if (state.stage === 1 && (state.left !== 0 || state.right !== 6)) state.explored = true;
   render();
   if (state.stage === 0 && state.left === 0 && state.right === 6) {
-    setTimeout(() => { state.stage = 1; render(); }, 450);
+    setTimeout(() => {
+      if (state.stage === 0 && state.left === 0 && state.right === 6) jumpToStage(1);
+    }, 450);
   }
 }
 
@@ -137,6 +139,14 @@ function renderCoach() {
     actions.innerHTML = `<button class="action-button" id="replay">Replay lesson</button><a class="action-button secondary" href="https://neetcode.io/problems/binary-search/question" target="_blank" rel="noreferrer" style="text-align:center;text-decoration:none">Try the problem ↗</a>`;
     $("#replay").onclick = resetLesson;
   }
+
+  actions.insertAdjacentHTML("beforeend", `
+    <div class="step-nav" aria-label="Lesson step navigation">
+      <button class="step-button" id="previous-step" type="button" ${state.stage === 0 ? "disabled" : ""} aria-label="Previous step">← <span>Back</span></button>
+      <button class="step-button" id="next-step" type="button" ${state.stage === stages.length - 1 ? "disabled" : ""} aria-label="Next step"><span>Next</span> →</button>
+    </div>`);
+  $("#previous-step").onclick = () => jumpToStage(state.stage - 1);
+  $("#next-step").onclick = () => jumpToStage(state.stage + 1);
 }
 
 function renderCode() {
@@ -243,9 +253,23 @@ function compareChoice(choice) {
 }
 
 function closeModal() { modal.hidden = true; }
-function resetLesson() {
-  Object.assign(state, { left: null, right: null, activeTool: "left", stage: 0, explored: false, mid: null, found: false });
+function jumpToStage(nextStage) {
+  const stage = Math.max(0, Math.min(stages.length - 1, nextStage));
+  const snapshots = [
+    { left: null, right: null, activeTool: "left", explored: false, mid: null, found: false },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: 3, found: false },
+    { left: 4, right: 4, activeTool: "left", explored: true, mid: 4, found: true },
+  ];
+  closeModal();
+  Object.assign(state, snapshots[stage], { stage });
   render();
+}
+
+function resetLesson() {
+  jumpToStage(0);
 }
 
 document.querySelectorAll(".pointer-tool").forEach(tool => tool.addEventListener("click", () => { state.activeTool = tool.dataset.tool; render(); }));
