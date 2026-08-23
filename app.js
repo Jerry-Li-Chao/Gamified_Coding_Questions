@@ -190,18 +190,16 @@ function renderCode() {
   if (state.stage >= 4) revealed = 14;
   if (state.stage >= 5) revealed = 16;
   $("#code-block").innerHTML = renderedCodeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === revealed - 1 ? "revealed" : ""}">${line || " "}</span>`).join("");
-  const notes = [
-    "Start with the function shell. The game will turn each idea into Python.",
-    "The boundaries are inclusive: both ends are still possible answers.",
-    "The current range is always nums[left:right + 1].",
-    "<= keeps searching while even one candidate remains.",
-    "Floor division converts the midpoint into a valid integer index.",
-    "Found it. Returning mid gives the target’s index.",
+  const noteDetails = [
+    { label: "WHY THIS LINE?", line: `def search(self, nums, target) -&gt; int:`, text: "This function receives the sorted array and target, then returns the target’s index—or -1 when it is absent." },
+    { label: "LIVE POINTER STATE", line: `left = ${state.left ?? 0}\nright = ${state.right ?? state.nums.length - 1}`, text: "These values match the handles on the array. Drag either handle and both the code and active range update immediately." },
+    { label: "RANGE VIEW", line: `nums[left : right + 1]`, text: "This expression describes the candidates still under consideration; the algorithm does not need to create this slice. Python excludes a slice’s ending index, so + 1 includes nums[right]. Example: left = 1 and right = 3 means nums[1:4] → [4, 7, 12]." },
+    { label: "WHY THIS LINE?", line: `while left &lt;= right:`, text: "The loop continues while at least one unchecked candidate remains. When the pointers cross, the range is empty and the search stops." },
+    { label: "WHY THIS LINE?", line: `mid = left + (right - left) // 2`, text: "Floor division turns the halfway point into a valid integer index, choosing the lower middle when there are two middle positions." },
+    { label: "WHY THIS LINE?", line: `return mid`, text: "At this point nums[mid] equals the target, so mid is exactly the index the function must return." },
   ];
-  const note = state.stage === 1 && state.left !== null && state.right !== null
-    ? `Live state: <b>left = ${state.left}</b>, <b>right = ${state.right}</b>. Drag either handle and these values update with the active range.`
-    : notes[state.stage];
-  $("#code-note").innerHTML = `<span class="note-pin">✦</span><div><strong>${state.stage === 1 ? "LIVE POINTER STATE" : "WHY THIS LINE?"}</strong><p>${note}</p></div>`;
+  const note = noteDetails[state.stage];
+  $("#code-note").innerHTML = `<span class="note-pin">✦</span><div><strong>${note.label}</strong><code class="note-line">${note.line}</code><p>${note.text}</p></div>`;
 }
 
 function updateProgress() {
@@ -230,13 +228,27 @@ function openLoopModal() {
   $("#modal-content").innerHTML = `
     <span class="eyebrow">THE LAST CANDIDATE</span>
     <h2>One cell is still a search range.</h2>
-    <p>Imagine every other value has been ruled out. Left and Right now point to the same final candidate. It still might be the target, so the loop must run once more.</p>
-    <div class="pointer-demo">
-      <div class="demo-array"><span class="demo-cell">7</span><span class="demo-cell single">12<small style="position:absolute;top:-19px;color:#ffb62e;font-size:8px">L &amp; R</small></span><span class="demo-cell">20</span></div>
-      <div class="demo-pointers">
-        <div class="correct"><b>left &lt;= right ✓</b>“There is at least one candidate.” Equal pointers run the loop and inspect 12. After a miss, one pointer moves past the other and the search stops.</div>
-        <div class="wrong"><b>left &lt; right ✕</b>“There are at least two candidates.” Equal pointers stop immediately, skipping 12 entirely—even if 12 is the target.</div>
-      </div>
+    <p>Every other value has been ruled out. Left and Right now meet on 12, so 12 is the final unchecked candidate. Watch how the two conditions handle it differently.</p>
+    <div class="condition-demos">
+      <section class="condition-case correct-case">
+        <header><span>INCLUSIVE CONDITION</span><code>left &lt;= right</code><b>CHECKS 12 ✓</b></header>
+        <div class="one-cell-scene"><span class="case-pointer left">L</span><span class="lone-cell">12</span><span class="case-pointer right">R</span></div>
+        <ol class="case-timeline">
+          <li><b>1</b><span>Left equals Right, so one candidate remains.</span></li>
+          <li><b>2</b><span><code>left &lt;= right</code> is true. The loop inspects 12.</span></li>
+          <li><b>3</b><span>After a miss, a pointer moves past the other. The range is empty, so the loop stops.</span></li>
+        </ol>
+      </section>
+      <section class="condition-case wrong-case">
+        <header><span>STRICT CONDITION</span><code>left &lt; right</code><b>SKIPS 12 ✕</b></header>
+        <div class="one-cell-scene"><span class="case-pointer left">L</span><span class="lone-cell">12</span><span class="case-pointer right">R</span></div>
+        <ol class="case-timeline">
+          <li><b>1</b><span>Left equals Right, but 12 has not been checked yet.</span></li>
+          <li><b>2</b><span><code>left &lt; right</code> is false because the pointers are equal.</span></li>
+          <li><b>3</b><span>The loop stops immediately and skips 12—even when 12 is the target.</span></li>
+        </ol>
+      </section>
+      <p class="animation-caption"><i></i> Both demonstrations replay automatically.</p>
     </div>
     <p>Which condition correctly includes the last remaining candidate?</p>
     <div class="quiz-options"><button class="quiz-option" data-answer="wrong">while left &lt; right</button><button class="quiz-option" data-answer="correct">while left &lt;= right</button></div>
