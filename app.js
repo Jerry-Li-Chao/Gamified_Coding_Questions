@@ -186,16 +186,17 @@ function renderCode() {
   }
   let revealed = 2;
   if (state.stage >= 1) revealed = 4;
-  if (state.stage >= 3) revealed = 6;
+  if (state.stage >= 2) revealed = 6;
+  if (state.stage >= 3) revealed = 7;
   if (state.stage >= 4) revealed = 14;
   if (state.stage >= 5) revealed = 16;
   $("#code-block").innerHTML = renderedCodeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === revealed - 1 ? "revealed" : ""}">${line || " "}</span>`).join("");
   const noteDetails = [
     { label: "WHY THIS LINE?", line: `def search(self, nums, target) -&gt; int:`, text: "This function receives the sorted array and target, then returns the target’s index—or -1 when it is absent." },
     { label: "LIVE POINTER STATE", line: `left = ${state.left ?? 0}\nright = ${state.right ?? state.nums.length - 1}`, text: "These values match the handles on the array. Drag either handle and both the code and active range update immediately." },
-    { label: "RANGE VIEW", line: `nums[left : right + 1]`, text: "This expression describes the candidates still under consideration; the algorithm does not need to create this slice. Python excludes a slice’s ending index, so + 1 includes nums[right]. Example: left = 1 and right = 3 means nums[1:4] → [4, 7, 12]." },
-    { label: "WHY THIS LINE?", line: `while left &lt;= right:`, text: "The loop continues while at least one unchecked candidate remains. When the pointers cross, the range is empty and the search stops." },
+    { label: "WHY THIS LINE?", line: `while left &lt;= right:`, text: "The loop continues while at least one unchecked candidate remains. Equal pointers mean one candidate is left; crossed pointers mean the range is empty." },
     { label: "WHY THIS LINE?", line: `mid = left + (right - left) // 2`, text: "Floor division turns the halfway point into a valid integer index, choosing the lower middle when there are two middle positions." },
+    { label: "WHY THESE LINES?", line: `if nums[mid] == target:\nelif nums[mid] &lt; target:\nelse:`, text: "These comparisons either return the answer or discard the half that cannot contain the target." },
     { label: "WHY THIS LINE?", line: `return mid`, text: "At this point nums[mid] equals the target, so mid is exactly the index the function must return." },
   ];
   const note = noteDetails[state.stage];
