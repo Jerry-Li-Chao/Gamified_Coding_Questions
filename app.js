@@ -53,9 +53,8 @@ function renderArray() {
     const rightActive = state.activeTool === "right" ? " active" : "";
     const markers = `${state.left === index ? `<span class="marker-handle left${leftActive}" data-pointer="left" title="Drag the Left pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Left pointer"' : ""}><span class="marker">L</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}${state.right === index ? `<span class="marker-handle right${rightActive}" data-pointer="right" title="Drag the Right pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Right pointer"' : ""}><span class="marker">R</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}`;
     const classes = ["array-cell", value === state.target ? "is-target" : "", outside ? "out-of-range" : "", state.mid === index ? "is-mid" : "", state.found && state.mid === index ? "found" : ""].join(" ");
-    const height = 18 + (value / 30) * 126;
     return `<button class="${classes}" data-index="${index}" type="button" aria-label="Value ${value} at index ${index}">
-      <span class="histogram" style="height:${height}px"></span>
+      <span class="histogram" style="--value:${value}"></span>
       <span class="cell-body"><span class="cell-value">${value}</span></span>
       <span class="cell-index">${index}</span>
       <span class="pointer-marker">${markers}</span>
@@ -272,8 +271,10 @@ function openLoopModal() {
   modal.querySelectorAll(".quiz-option").forEach(button => button.onclick = () => {
     if (button.dataset.answer === "correct") {
       button.classList.add("correct");
-      $("#modal-feedback").textContent = "Exactly. Equal pointers mean one unchecked candidate remains; crossed pointers mean none remain.";
-      setTimeout(() => { closeModal(); state.stage = 3; render(); }, 900);
+      modal.querySelectorAll(".quiz-option").forEach(option => { option.disabled = true; });
+      $("#modal-feedback").textContent = "Exactly. Equal pointers mean one unchecked candidate remains; crossed pointers mean none remain. Close with × or click outside when you are ready.";
+      state.stage = 3;
+      render();
     } else {
       button.classList.add("wrong");
       $("#modal-feedback").textContent = "That stops one step too early. The cell under both pointers never gets checked.";
@@ -296,8 +297,11 @@ function openMidModal() {
   modal.querySelectorAll(".quiz-option").forEach(button => button.onclick = () => {
     if (Number(button.dataset.value) === answer) {
       button.classList.add("correct");
-      $("#modal-feedback").textContent = `Correct. The middle candidate is nums[${answer}] = ${state.nums[answer]}.`;
-      setTimeout(() => { closeModal(); state.mid = answer; state.stage = 4; render(); }, 850);
+      modal.querySelectorAll(".quiz-option").forEach(option => { option.disabled = true; });
+      $("#modal-feedback").textContent = `Correct. The middle candidate is nums[${answer}] = ${state.nums[answer]}. Close with × or click outside when you are ready.`;
+      state.mid = answer;
+      state.stage = 4;
+      render();
     } else {
       button.classList.add("wrong");
       $("#modal-feedback").textContent = "Arrays need an integer index. Floor division removes the fractional part.";
