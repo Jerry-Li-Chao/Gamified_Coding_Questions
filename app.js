@@ -56,6 +56,7 @@ function renderArray() {
     const markers = `${state.left === index ? `<span class="marker-handle left${leftActive}" data-pointer="left" title="Drag the Left pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Left pointer"' : ""}><span class="marker">L</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}${state.right === index ? `<span class="marker-handle right${rightActive}" data-pointer="right" title="Drag the Right pointer" ${canDrag ? 'role="slider" tabindex="0" aria-label="Drag Right pointer"' : ""}><span class="marker">R</span>${canDrag ? "<small>DRAG</small>" : ""}</span>` : ""}`;
     const classes = ["array-cell", value === state.target ? "is-target" : "", outside ? "out-of-range" : "", state.mid === index ? "is-mid" : "", state.found && state.mid === index ? "found" : ""].join(" ");
     return `<button class="${classes}" data-index="${index}" type="button" aria-label="Value ${value} at index ${index}">
+      ${state.mid === index ? '<span class="mid-label" aria-label="Middle index">MID</span>' : ""}
       <span class="histogram" style="--value:${value}"></span>
       <span class="cell-body"><span class="cell-value">${value}</span></span>
       <span class="cell-index">${index}</span>
@@ -237,6 +238,7 @@ function captureRenderState() {
     rangeText: $("#range-sentence")?.textContent || "",
     markers: new Map([...rig.querySelectorAll(".marker-handle")].map(marker => [marker.dataset.pointer, marker.getBoundingClientRect()])),
     cells: new Map([...rig.querySelectorAll(".array-cell")].map(cell => [cell.dataset.index, cell.className])),
+    midRect: rig.querySelector(".mid-label")?.getBoundingClientRect() || null,
   };
 }
 
@@ -252,6 +254,19 @@ function animateRenderChanges(previous) {
     if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
     marker.animate([{ translate: `${deltaX}px ${deltaY}px` }, { translate: "0 0" }], { duration: 520, easing: "cubic-bezier(.22,.8,.25,1)" });
   });
+
+  const midLabel = rig.querySelector(".mid-label");
+  if (midLabel && previous.midRect) {
+    const newRect = midLabel.getBoundingClientRect();
+    const deltaX = previous.midRect.left - newRect.left;
+    const deltaY = previous.midRect.top - newRect.top;
+    if (Math.abs(deltaX) >= 1 || Math.abs(deltaY) >= 1) {
+      midLabel.animate([
+        { translate: `${deltaX}px ${deltaY}px`, opacity: .72 },
+        { translate: "0 0", opacity: 1 },
+      ], { duration: 520, easing: "cubic-bezier(.22,.8,.25,1)" });
+    }
+  }
 
   rig.querySelectorAll(".array-cell").forEach(cell => {
     const oldClass = previous.cells.get(cell.dataset.index);
@@ -328,10 +343,7 @@ function openLoopModal() {
     if (button.dataset.answer === "correct") {
       button.classList.add("correct");
       modal.querySelectorAll(".quiz-option").forEach(option => { option.disabled = true; });
-      $("#modal-feedback").textContent = "Exactly. Equal pointers mean one unchecked candidate remains; crossed pointers mean none remain. Close with × or click outside when you are ready.";
-      state.stage = 3;
-      state.activeCodeLine = 6;
-      render();
+      $("#modal-feedback").textContent = "Exactly. Equal pointers mean one unchecked candidate remains; crossed pointers mean none remain. Close this explanation, then press Next when you are ready.";
     } else {
       button.classList.add("wrong");
       $("#modal-feedback").textContent = "That stops one step too early. The cell under both pointers never gets checked.";
@@ -355,9 +367,8 @@ function openMidModal() {
     if (Number(button.dataset.value) === answer) {
       button.classList.add("correct");
       modal.querySelectorAll(".quiz-option").forEach(option => { option.disabled = true; });
-      $("#modal-feedback").textContent = `Correct. The middle candidate is nums[${answer}] = ${state.nums[answer]}. Close with × or click outside when you are ready.`;
+      $("#modal-feedback").textContent = `Correct. The middle candidate is nums[${answer}] = ${state.nums[answer]}. Close this explanation, then press Next when you are ready.`;
       state.mid = answer;
-      state.stage = 4;
       state.activeCodeLine = 6;
       render();
     } else {

@@ -115,7 +115,36 @@ h1 { font-size: 27px; line-height: 1; margin: 0; letter-spacing: -.03em; }
 .array-cell.out-of-range .histogram { filter: grayscale(1) brightness(.32); opacity: .48; }
 .array-cell.out-of-range .cell-body { filter: grayscale(.8) brightness(.45); border-color: #405151; transform: scale(.94); }
 .array-cell.is-mid .cell-body { border-color: var(--amber-soft); transform: translateY(-6px); box-shadow: inset 0 0 0 2px #061c20, 0 0 28px rgba(255,182,46,.45); }
-.array-cell.is-mid::before { content: "MID"; position: absolute; bottom: 119px; left: 50%; transform: translateX(-50%); color: var(--amber-soft); font: 900 9px "DM Mono"; letter-spacing: .12em; }
+.array-cell.is-mid::before { display: none; }
+.mid-label {
+  align-self: center;
+  position: relative;
+  z-index: 4;
+  margin-bottom: 7px;
+  padding: 4px 10px 3px;
+  color: var(--ink);
+  background: #fff7cd;
+  border: 2px solid var(--ink);
+  border-radius: 9px 7px 8px 6px;
+  box-shadow: 3px 3px 0 #ff8d72;
+  font: 1000 clamp(11px, 1.25vw, 15px) "Nunito", sans-serif;
+  line-height: 1;
+  letter-spacing: .12em;
+  animation: midLabelIn .35s cubic-bezier(.2,1.35,.4,1);
+}
+.mid-label::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  width: 8px;
+  height: 8px;
+  background: #fff7cd;
+  border-right: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+@keyframes midLabelIn { from { opacity: 0; transform: translateY(8px) scale(.82); } }
 .array-cell.found .cell-body { border-color: var(--teal); animation: foundPulse .8s infinite alternate; }
 @keyframes foundPulse { to { box-shadow: 0 0 36px rgba(66,216,197,.7), inset 0 0 20px rgba(66,216,197,.25); } }
 .array-rig.hide-histograms .histogram { height: 4px !important; opacity: .12; }
@@ -366,7 +395,7 @@ h1 { color: var(--ink); font-size: 31px; }
 .array-cell.out-of-range .histogram { filter: grayscale(.6); opacity: .25; }
 .array-cell.out-of-range .cell-body { filter: grayscale(.6); opacity: .38; border-color: #7e8493; box-shadow: 2px 2px 0 #7e8493; }
 .array-cell.is-mid .cell-body { border-color: var(--ink); background: #ffd36f; box-shadow: 5px 6px 0 #df5267; }
-.array-cell.is-mid::before { color: #b63850; font-size: 11px; }
+.array-cell.is-mid::before { display: none; }
 .array-cell.found .cell-body { border-color: var(--ink); background: #72dfbd; }
 
 .coach-box {
