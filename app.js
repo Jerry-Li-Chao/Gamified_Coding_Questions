@@ -230,7 +230,7 @@ function openLoopModal() {
     <span class="eyebrow">THE LAST CANDIDATE</span>
     <h2>One cell is still a search range.</h2>
     <p>Every other value has been ruled out. Left and Right now meet on 12, so 12 is the final unchecked candidate. Watch how the two conditions handle it differently.</p>
-    <div class="condition-demos">
+    <div class="condition-demos" data-step="1">
       <section class="condition-case correct-case">
         <header><span>INCLUSIVE CONDITION</span><code>left &lt;= right</code><b>CHECKS 12 ✓</b></header>
         <div class="one-cell-scene"><span class="case-pointer left">L</span><span class="lone-cell">12</span><span class="case-pointer right">R</span></div>
@@ -249,12 +249,26 @@ function openLoopModal() {
           <li><b>3</b><span>The loop stops immediately and skips 12—even when 12 is the target.</span></li>
         </ol>
       </section>
-      <p class="animation-caption"><i></i> Both demonstrations replay automatically.</p>
+      <div class="demo-controls" aria-label="One-cell demonstration controls">
+        <button id="demo-previous" type="button" disabled>← Previous</button>
+        <strong id="demo-step-label">Step 1 of 3</strong>
+        <button id="demo-next" type="button">Next →</button>
+      </div>
     </div>
     <p>Which condition correctly includes the last remaining candidate?</p>
     <div class="quiz-options"><button class="quiz-option" data-answer="wrong">while left &lt; right</button><button class="quiz-option" data-answer="correct">while left &lt;= right</button></div>
     <div class="modal-feedback" id="modal-feedback"></div>`;
   modal.hidden = false;
+  let demoStep = 1;
+  const updateDemoStep = (nextStep) => {
+    demoStep = Math.max(1, Math.min(3, nextStep));
+    $(".condition-demos").dataset.step = String(demoStep);
+    $("#demo-step-label").textContent = `Step ${demoStep} of 3`;
+    $("#demo-previous").disabled = demoStep === 1;
+    $("#demo-next").disabled = demoStep === 3;
+  };
+  $("#demo-previous").onclick = () => updateDemoStep(demoStep - 1);
+  $("#demo-next").onclick = () => updateDemoStep(demoStep + 1);
   modal.querySelectorAll(".quiz-option").forEach(button => button.onclick = () => {
     if (button.dataset.answer === "correct") {
       button.classList.add("correct");
