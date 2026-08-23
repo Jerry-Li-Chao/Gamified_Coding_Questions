@@ -9,6 +9,7 @@ const state = {
   mid: null,
   found: false,
   histograms: true,
+  activeCodeLine: 1,
 };
 
 const stages = [
@@ -44,6 +45,7 @@ const rig = $("#array-rig");
 const modal = $("#concept-modal");
 let draggedPointer = null;
 let lastDragIndex = null;
+let renderedStage = state.stage;
 
 function renderArray() {
   rig.innerHTML = state.nums.map((value, index) => {
@@ -111,10 +113,12 @@ function placePointer(index) {
   if (state.activeTool === "left") {
     if (state.right !== null && index > state.right) return nudgeInvalid("Left cannot pass Right — that would make the range empty.");
     state.left = index;
+    state.activeCodeLine = 2;
     if (state.stage === 0 && index === 0) state.activeTool = "right";
   } else {
     if (state.left !== null && index < state.left) return nudgeInvalid("Right cannot pass Left — that would make the range empty.");
     state.right = index;
+    state.activeCodeLine = 3;
   }
   if (state.stage === 1 && (state.left !== 0 || state.right !== 6)) state.explored = true;
   render();
@@ -152,7 +156,7 @@ function renderCoach() {
 
   if (state.stage === 1) {
     actions.innerHTML = `<button class="action-button" id="lock-range" ${state.explored ? "" : "disabled"}>Reset & lock range</button>`;
-    $("#lock-range").onclick = () => { state.left = 0; state.right = 6; state.stage = 2; render(); };
+    $("#lock-range").onclick = () => jumpToStage(2);
   } else if (state.stage === 2) {
     actions.innerHTML = `<button class="action-button" id="inspect-loop">Inspect one-cell case</button>`;
     $("#inspect-loop").onclick = openLoopModal;
@@ -189,7 +193,7 @@ function renderCode() {
   if (state.stage >= 3) revealed = 7;
   if (state.stage >= 4) revealed = 14;
   if (state.stage >= 5) revealed = 16;
-  $("#code-block").innerHTML = renderedCodeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === revealed - 1 ? "revealed" : ""}">${line || " "}</span>`).join("");
+  $("#code-block").innerHTML = renderedCodeLines.slice(0, revealed).map((line, i) => `<span class="code-line ${i === state.activeCodeLine ? "active-line" : ""}">${line || " "}</span>`).join("");
   const noteDetails = [
     { label: "WHY THIS LINE?", line: `def search(self, nums, target) -&gt; int:`, text: "This function receives the sorted array and target, then returns the target’s index—or -1 when it is absent." },
     { label: "LIVE POINTER STATE", line: `left = ${state.left ?? 0}\nright = ${state.right ?? state.nums.length - 1}`, text: "These values match the handles on the array. Drag either handle and both the code and active range update immediately." },
@@ -211,6 +215,7 @@ function updateProgress() {
 }
 
 function render() {
+  const previous = captureRenderState();
   document.querySelectorAll(".pointer-tool").forEach(tool => {
     tool.classList.toggle("active", tool.dataset.tool === state.activeTool);
     tool.disabled = state.stage > 1;
@@ -222,6 +227,57 @@ function render() {
   renderCode();
   updateProgress();
   $("#target-value").textContent = state.target;
+  requestAnimationFrame(() => animateRenderChanges(previous));
+  renderedStage = state.stage;
+}
+
+function captureRenderState() {
+  return {
+    stage: renderedStage,
+    rangeText: $("#range-sentence")?.textContent || "",
+    markers: new Map([...rig.querySelectorAll(".marker-handle")].map(marker => [marker.dataset.pointer, marker.getBoundingClientRect()])),
+    cells: new Map([...rig.querySelectorAll(".array-cell")].map(cell => [cell.dataset.index, cell.className])),
+  };
+}
+
+function animateRenderChanges(previous) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  rig.querySelectorAll(".marker-handle").forEach(marker => {
+    const oldRect = previous.markers.get(marker.dataset.pointer);
+    if (!oldRect) return;
+    const newRect = marker.getBoundingClientRect();
+    const deltaX = oldRect.left - newRect.left;
+    const deltaY = oldRect.top - newRect.top;
+    if (Math.abs(deltaX) < 1 && Math.abs(deltaY) < 1) return;
+    marker.animate([{ translate: `${deltaX}px ${deltaY}px` }, { translate: "0 0" }], { duration: 520, easing: "cubic-bezier(.22,.8,.25,1)" });
+  });
+
+  rig.querySelectorAll(".array-cell").forEach(cell => {
+    const oldClass = previous.cells.get(cell.dataset.index);
+    if (!oldClass || oldClass === cell.className) return;
+    cell.animate([
+      { filter: "brightness(1) saturate(1)" },
+      { filter: "brightness(1.18) saturate(1.3)", offset: .38 },
+      { filter: "brightness(1) saturate(1)" },
+    ], { duration: 620, easing: "ease-out" });
+  });
+
+  const range = $("#range-sentence");
+  if (range && previous.rangeText !== range.textContent) {
+    range.animate([
+      { boxShadow: "4px 4px 0 #72d6c5", transform: "translateX(-50%) rotate(.25deg) scale(1)" },
+      { boxShadow: "6px 6px 0 #ff9ca7", transform: "translateX(-50%) rotate(.25deg) scale(1.018)", offset: .38 },
+      { boxShadow: "4px 4px 0 #72d6c5", transform: "translateX(-50%) rotate(.25deg) scale(1)" },
+    ], { duration: 620, easing: "ease-out" });
+  }
+
+  if (previous.stage !== state.stage) {
+    $(".coach-box")?.animate([
+      { opacity: .72, translate: "0 10px" },
+      { opacity: 1, translate: "0 0" },
+    ], { duration: 420, easing: "cubic-bezier(.2,.8,.3,1)" });
+  }
 }
 
 function openLoopModal() {
@@ -274,6 +330,7 @@ function openLoopModal() {
       modal.querySelectorAll(".quiz-option").forEach(option => { option.disabled = true; });
       $("#modal-feedback").textContent = "Exactly. Equal pointers mean one unchecked candidate remains; crossed pointers mean none remain. Close with × or click outside when you are ready.";
       state.stage = 3;
+      state.activeCodeLine = 6;
       render();
     } else {
       button.classList.add("wrong");
@@ -301,6 +358,7 @@ function openMidModal() {
       $("#modal-feedback").textContent = `Correct. The middle candidate is nums[${answer}] = ${state.nums[answer]}. Close with × or click outside when you are ready.`;
       state.mid = answer;
       state.stage = 4;
+      state.activeCodeLine = 6;
       render();
     } else {
       button.classList.add("wrong");
@@ -316,11 +374,17 @@ function compareChoice(choice) {
   if (choice === "found") {
     state.found = true;
     state.stage = 5;
+    state.activeCodeLine = 9;
     render();
     return;
   }
-  if (choice === "higher") state.left = state.mid + 1;
-  else state.right = state.mid - 1;
+  if (choice === "higher") {
+    state.left = state.mid + 1;
+    state.activeCodeLine = 11;
+  } else {
+    state.right = state.mid - 1;
+    state.activeCodeLine = 13;
+  }
   state.mid = state.left + Math.floor((state.right - state.left) / 2);
   render();
 }
@@ -329,12 +393,12 @@ function closeModal() { modal.hidden = true; }
 function jumpToStage(nextStage) {
   const stage = Math.max(0, Math.min(stages.length - 1, nextStage));
   const snapshots = [
-    { left: null, right: null, activeTool: "left", explored: false, mid: null, found: false },
-    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
-    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
-    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false },
-    { left: 0, right: 6, activeTool: "left", explored: true, mid: 3, found: false },
-    { left: 4, right: 4, activeTool: "left", explored: true, mid: 4, found: true },
+    { left: null, right: null, activeTool: "left", explored: false, mid: null, found: false, activeCodeLine: 1 },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false, activeCodeLine: 3 },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false, activeCodeLine: 5 },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: null, found: false, activeCodeLine: 6 },
+    { left: 0, right: 6, activeTool: "left", explored: true, mid: 3, found: false, activeCodeLine: 6 },
+    { left: 4, right: 4, activeTool: "left", explored: true, mid: 4, found: true, activeCodeLine: 9 },
   ];
   closeModal();
   Object.assign(state, snapshots[stage], { stage });
