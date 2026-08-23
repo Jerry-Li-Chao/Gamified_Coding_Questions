@@ -1,0 +1,4 @@
+interface:
+  display_name: "Gamified Coding Tutorials"
+  short_description: "Design consistent interactive coding lessons"
+  default_prompt: "Use $design-gamified-code-tutorials to build or refine an interactive coding tutorial."
