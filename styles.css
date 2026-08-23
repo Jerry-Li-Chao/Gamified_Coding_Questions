@@ -187,8 +187,10 @@ h1 { font-size: 27px; line-height: 1; margin: 0; letter-spacing: -.03em; }
 .note-pin { color: var(--amber); }
 .code-note strong { display: block; color: var(--amber); font: 500 8px "DM Mono"; letter-spacing: .1em; }
 .code-note p { color: #748886; font-size: 10px; line-height: 1.4; margin: 5px 0 0; }
-.complexity-strip { height: 44px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-around; color: #536968; font: 500 8px "DM Mono"; letter-spacing: .1em; }
+.complexity-strip { min-height: 44px; padding: 6px 12px; border-top: 1px solid var(--line); display: flex; align-items: center; justify-content: space-around; gap: 8px; color: #536968; font: 500 8px "DM Mono"; letter-spacing: .1em; }
 .complexity-strip b { color: var(--teal); font-weight: 500; margin-left: 5px; }
+.complexity-why { padding: 5px 10px; border: 1px solid currentColor; border-radius: 7px 5px 8px 6px; background: transparent; color: var(--teal); font-size: 9px; font-weight: 900; letter-spacing: .05em; cursor: pointer; transition: transform .18s, box-shadow .18s, background .18s; }
+.complexity-why:hover { transform: translateY(-1px); background: rgba(64,189,168,.1); }
 
 .modal-backdrop { position: fixed; z-index: 100; inset: 0; display: grid; place-items: center; padding: 30px; background: rgba(2,9,11,.84); backdrop-filter: blur(8px); }
 .modal-backdrop[hidden] { display: none; }
@@ -438,7 +440,7 @@ h1 { color: var(--ink); font-size: 31px; }
 .code-tabs { border-color: rgba(37,48,74,.16); }
 .code-tabs button { color: #72778c; font-size: 11px; }
 .code-tabs button.active { color: #158c79; border-color: #158c79; }
-.code-block { color: var(--ink); font-size: 14px; line-height: 1.9; }
+.code-block { color: var(--ink); font-size: 13px; line-height: 1.82; }
 .code-line::before { color: #9598aa; }
 .code-line.revealed { background: linear-gradient(90deg, rgba(89,202,184,.22), transparent); }
 .code-line.active-line { background: linear-gradient(90deg, rgba(89,202,184,.3), rgba(255,211,111,.13), transparent); box-shadow: inset 4px 0 #36aa98; animation: codeFocus .58s ease-out; }
@@ -451,6 +453,8 @@ h1 { color: var(--ink); font-size: 31px; }
 .code-note p b { color: #bd354f; }
 .complexity-strip { border-color: rgba(37,48,74,.18); color: #72788c; font-size: 10px; }
 .complexity-strip b { color: #168977; }
+.complexity-why { border: 2px solid var(--ink); background: #fff; color: #b63850; box-shadow: 2px 2px 0 #ffb883; }
+.complexity-why:hover { background: #fff3ca; box-shadow: 3px 3px 0 #ff9ca7; }
 
 .modal-backdrop { background: rgba(37,48,74,.48); }
 .concept-modal { background: #fffaf0; border: 2px solid var(--ink); box-shadow: 8px 8px 0 var(--ink); }
@@ -511,8 +515,34 @@ h1 { color: var(--ink); font-size: 31px; }
 .demo-controls button:last-child { justify-self: start; }
 .demo-controls button:disabled { opacity: .35; box-shadow: none; cursor: not-allowed; }
 
+/* Complexity lab: manual halving alongside constant-memory illustration */
+.complexity-lesson { display: grid; grid-template-columns: 1.2fr .8fr; gap: 18px; margin-top: 22px; }
+.complexity-lesson section { padding: 18px; border: 2px solid var(--ink); border-radius: 15px 10px 14px 9px; box-shadow: 4px 4px 0 var(--ink); }
+.complexity-time-demo { background: #e2f7f2; }
+.complexity-space-demo { background: #f1eaff; }
+.complexity-lesson section > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+.complexity-lesson section > header span { color: #747b8e; font-size: 10px; font-weight: 900; letter-spacing: .14em; }
+.complexity-lesson section > header strong { color: #168977; font: 900 19px "DM Mono"; }
+.halving-stage { min-height: 66px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 10px; border: 2px dashed #71968f; border-radius: 10px; background: rgba(255,255,255,.65); }
+.complexity-cell { width: 31px; height: 38px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 8px 6px 9px 7px; font-size: 10px; transition: opacity .28s, transform .28s, background .28s; animation: complexityCellIn .3s ease-out both; }
+.complexity-cell.kept { background: #73d9c3; color: #19695d; }
+.complexity-cell.discarded { background: #f2dfe2; color: #b34d60; opacity: .32; transform: scale(.82); }
+@keyframes complexityCellIn { from { opacity: 0; transform: translateY(8px) scale(.85); } }
+.round-label { display: block; margin-top: 13px; color: var(--ink); font-size: 16px; }
+.complexity-time-demo > p, .complexity-space-demo > p { min-height: 48px; color: #565e72; font-size: 14px; line-height: 1.5; }
+.complexity-controls { grid-template-columns: auto 1fr auto; margin-top: 13px; }
+.complexity-controls strong { text-align: center; }
+.memory-shelf { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 25px 0 18px; }
+.memory-shelf span { display: grid; gap: 5px; text-align: center; }
+.memory-shelf b { color: #6d5f86; font: 700 11px "DM Mono"; }
+.memory-shelf i { min-height: 44px; display: grid; place-items: center; border: 2px solid var(--ink); border-radius: 9px 7px 8px 6px; background: #fff; color: #b63850; box-shadow: 2px 2px 0 #c8b7e4; font: normal 900 18px "DM Mono"; }
+.constant-memory-note { display: grid; gap: 4px; margin-top: 19px; padding: 11px; border-left: 5px solid #b63850; background: rgba(255,255,255,.65); }
+.constant-memory-note b { color: var(--ink); font-size: 13px; }
+.constant-memory-note span { color: #666d80; font-size: 12px; }
+
 @media (max-width: 640px) {
   .condition-demos { grid-template-columns: 1fr; }
+  .complexity-lesson { grid-template-columns: 1fr; }
   .demo-controls { grid-column: 1; grid-template-columns: 1fr auto 1fr; }
   .demo-controls button { min-width: 84px; padding-inline: 7px; font-size: 10px; }
 }
@@ -542,9 +572,9 @@ body { overflow: auto; }
   overflow-y: auto;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  font-size: clamp(11px, 1.05vw, 14px);
+  font-size: clamp(10.5px, .95vw, 13px);
 }
-.code-line { padding-left: clamp(42px, 4vw, 54px); padding-right: 10px; }
+.code-line { padding-left: clamp(38px, 3.4vw, 48px); padding-right: 8px; }
 .code-line::before { left: clamp(11px, 1.6vw, 20px); }
 .code-note { flex: 0 0 auto; max-height: 38svh; overflow-y: auto; }
 .quiz-option:disabled { cursor: default; }

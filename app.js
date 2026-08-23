@@ -298,7 +298,7 @@ function animateRenderChanges(previous) {
 function openLoopModal() {
   $("#modal-content").innerHTML = `
     <span class="eyebrow">THE LAST CANDIDATE</span>
-    <h2>One cell is still a search range.</h2>
+    <h2 id="modal-title">One cell is still a search range.</h2>
     <p>Every other value has been ruled out. Left and Right now meet on 12, so 12 is the final unchecked candidate. Watch how the two conditions handle it differently.</p>
     <div class="condition-demos" data-step="1">
       <section class="condition-case correct-case">
@@ -356,7 +356,7 @@ function openMidModal() {
   const answer = Math.floor(exact);
   $("#modal-content").innerHTML = `
     <span class="eyebrow">MIDPOINT CALIBRATION</span>
-    <h2>An index must be a whole number.</h2>
+    <h2 id="modal-title">An index must be a whole number.</h2>
     <p>We measure the width from Left to Right, halve it, then offset from Left. In languages with fixed-size integers, this form also avoids the overflow risk of <b>(left + right) // 2</b>.</p>
     <div class="math-board"><span>left + (right - left) // 2</span><br><strong>${state.left} + (${state.right} - ${state.left}) // 2 = ?</strong><br><span class="comment">// Exact halfway point: ${exact}</span></div>
     <p>Why floor division? If the halfway point is, say, 3.5, there is no cell 3.5. <b>// 2</b> deliberately chooses the lower middle cell, keeping <code>mid</code> a valid integer index. Either middle can work if the boundary updates are consistent.</p>
@@ -376,6 +376,68 @@ function openMidModal() {
       $("#modal-feedback").textContent = "Arrays need an integer index. Floor division removes the fractional part.";
     }
   });
+}
+
+function openComplexityModal() {
+  const rounds = [
+    { size: 7, label: "Start with 7 candidates", note: "One comparison checks the middle value." },
+    { size: 3, label: "Keep at most 3", note: "The other half cannot contain the target, so it is discarded." },
+    { size: 1, label: "Only 1 candidate remains", note: "Another comparison either finds it or empties the range." },
+    { size: 0, label: "Search complete", note: "Three comparisons reduced 7 candidates to zero. For n candidates, that takes about log₂(n) comparisons." },
+  ];
+  const renderRoundCells = (size) => Array.from({ length: 7 }, (_, index) =>
+    `<span class="complexity-cell${index < size ? " kept" : " discarded"}">${index < size ? "●" : "×"}</span>`
+  ).join("");
+
+  $("#modal-content").innerHTML = `
+    <span class="eyebrow">COST OF THE SEARCH</span>
+    <h2 id="modal-title">Why O(log n) time and O(1) space?</h2>
+    <p>Binary search saves work in two different ways: it repeatedly shrinks the candidates, while reusing the same small set of variables.</p>
+    <div class="complexity-lesson">
+      <section class="complexity-time-demo">
+        <header><span>WORST-CASE TIME</span><strong>O(log n)</strong></header>
+        <div class="halving-stage" id="halving-stage">${renderRoundCells(rounds[0].size)}</div>
+        <strong class="round-label" id="round-label">${rounds[0].label}</strong>
+        <p id="round-note">${rounds[0].note}</p>
+        <div class="demo-controls complexity-controls" aria-label="Time complexity demonstration controls">
+          <button id="complexity-previous" type="button" disabled>← Previous</button>
+          <strong id="complexity-step-label">Step 1 of 4</strong>
+          <button id="complexity-next" type="button">Next →</button>
+        </div>
+      </section>
+      <section class="complexity-space-demo">
+        <header><span>SPACE</span><strong>O(1)</strong></header>
+        <div class="memory-shelf" aria-label="Three reused index variables">
+          <span><b>left</b><i id="memory-left">0</i></span>
+          <span><b>mid</b><i id="memory-mid">3</i></span>
+          <span><b>right</b><i id="memory-right">6</i></span>
+        </div>
+        <p>The numbers inside these three index variables change, but iterative binary search does not copy the array or add more variables as <code>nums</code> grows.</p>
+        <div class="constant-memory-note"><b>7 values or 7 million values</b><span>still the same fixed handful of variables</span></div>
+      </section>
+    </div>`;
+  modal.hidden = false;
+
+  let round = 0;
+  const updateComplexityRound = (nextRound) => {
+    round = Math.max(0, Math.min(rounds.length - 1, nextRound));
+    const current = rounds[round];
+    $("#halving-stage").innerHTML = renderRoundCells(current.size);
+    $("#round-label").textContent = current.label;
+    $("#round-note").textContent = current.note;
+    $("#complexity-step-label").textContent = `Step ${round + 1} of ${rounds.length}`;
+    $("#complexity-previous").disabled = round === 0;
+    $("#complexity-next").disabled = round === rounds.length - 1;
+    const memoryStates = [[0, 3, 6], [4, 5, 6], [4, 4, 4], [5, 4, 4]];
+    [$("#memory-left"), $("#memory-mid"), $("#memory-right")].forEach((item, index) => {
+      if (item.textContent !== String(memoryStates[round][index])) {
+        item.textContent = memoryStates[round][index];
+        item.animate([{ transform: "translateY(-5px)", background: "#ffd36f" }, { transform: "none", background: "#fff" }], { duration: 360, easing: "ease-out" });
+      }
+    });
+  };
+  $("#complexity-previous").onclick = () => updateComplexityRound(round - 1);
+  $("#complexity-next").onclick = () => updateComplexityRound(round + 1);
 }
 
 function compareChoice(choice) {
@@ -428,6 +490,7 @@ $("#histogram-toggle").addEventListener("click", () => {
   $("#histogram-toggle span").textContent = state.histograms ? "Hide heights" : "Show heights";
   renderArray();
 });
+$("#complexity-why").addEventListener("click", openComplexityModal);
 $("#modal-close").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });
 document.addEventListener("keydown", event => { if (event.key === "Escape") closeModal(); });
