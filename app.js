@@ -169,7 +169,7 @@ function renderCoach() {
     actions.innerHTML = `<button class="action-button choice" data-choice="higher">Target is higher</button><button class="action-button secondary choice" data-choice="lower">Target is lower</button>${midValue === state.target ? '<button class="action-button choice" data-choice="found">It matches!</button>' : ''}`;
     actions.querySelectorAll(".choice").forEach(button => button.onclick = () => compareChoice(button.dataset.choice));
   } else if (state.stage === 5) {
-    actions.innerHTML = `<button class="action-button" id="replay">Replay lesson</button><a class="action-button secondary" href="https://neetcode.io/problems/binary-search/question" target="_blank" rel="noreferrer" style="text-align:center;text-decoration:none">Try the problem ↗</a>`;
+    actions.innerHTML = `<button class="action-button" id="replay">Replay lesson</button><a class="action-button secondary" href="https://neetcode.io/problems/binary-search/question?list=neetcode150" target="_blank" rel="noreferrer" style="text-align:center;text-decoration:none">Try the problem ↗</a>`;
     $("#replay").onclick = resetLesson;
   }
 
@@ -378,6 +378,35 @@ function openMidModal() {
   });
 }
 
+function openProblemModal() {
+  $("#modal-content").innerHTML = `
+    <span class="eyebrow">NEETCODE 150 · EASY</span>
+    <h2 id="modal-title">Binary Search</h2>
+    <div class="problem-sheet">
+      <section class="problem-task">
+        <h3>Problem</h3>
+        <p>You receive an ascending array of unique integers, <code>nums</code>, and an integer <code>target</code>. Return the zero-based index of <code>target</code> when it is present. If it is absent, return <code>-1</code>.</p>
+        <p>Your algorithm must run in <code>O(log n)</code> time.</p>
+      </section>
+      <section class="problem-examples" aria-label="Examples">
+        <h3>Examples</h3>
+        <div class="problem-example"><b>Example 1</b><code>nums = [-1, 0, 2, 4, 6, 8]<br>target = 4<br><strong>output = 3</strong></code><span>The value 4 is at index 3.</span></div>
+        <div class="problem-example"><b>Example 2</b><code>nums = [-1, 0, 2, 4, 6, 8]<br>target = 3<br><strong>output = -1</strong></code><span>The value 3 is not in the array.</span></div>
+      </section>
+      <section class="problem-constraints">
+        <h3>Constraints</h3>
+        <ul>
+          <li><code>1 ≤ nums.length ≤ 10,000</code></li>
+          <li><code>-10,000 &lt; nums[i], target &lt; 10,000</code></li>
+          <li>Every value in <code>nums</code> is unique.</li>
+          <li><code>nums</code> is sorted in ascending order.</li>
+        </ul>
+      </section>
+    </div>
+    <p class="problem-source">Adapted from <a href="https://neetcode.io/problems/binary-search/question?list=neetcode150" target="_blank" rel="noreferrer">NeetCode’s Binary Search question ↗</a>.</p>`;
+  modal.hidden = false;
+}
+
 function openComplexityModal() {
   const rounds = [
     { size: 7, label: "Start with 7 candidates", note: "One comparison checks the middle value." },
@@ -490,6 +519,7 @@ $("#histogram-toggle").addEventListener("click", () => {
   $("#histogram-toggle span").textContent = state.histograms ? "Hide heights" : "Show heights";
   renderArray();
 });
+$("#problem-button").addEventListener("click", openProblemModal);
 $("#complexity-why").addEventListener("click", openComplexityModal);
 $("#modal-close").addEventListener("click", closeModal);
 modal.addEventListener("click", event => { if (event.target === modal) closeModal(); });

@@ -31,6 +31,8 @@ Keep tools outside the visualization’s data and coaching regions. Never allow 
 
 Include an appropriate source-problem or authoritative reference link in the header when one exists. Label it with the source name rather than a generic “Problem” label. Omit it for a concept lesson with no useful canonical source.
 
+Place a compact **Problem** or **Prompt** button beside the lesson title. Open an in-page, attributed problem sheet containing the title, paraphrased task, examples, constraints, and required complexity. Preserve factual values but do not republish lengthy third-party wording verbatim. Keep the learner’s current lesson state unchanged when opening or closing it.
+
 ## Keep teaching state synchronized
 
 Maintain one canonical lesson state and derive the visualization, summary, instructions, and code inspector from it.
@@ -107,6 +109,7 @@ Require the following unless the tutorial genuinely makes one irrelevant:
 
 - Extensible lesson navigation and progress
 - Lesson title and source-problem or reference link when one exists
+- Title-adjacent Problem/Prompt button opening an attributed in-page problem sheet
 - Optional visual-aid toggle when the visualization has secondary layers
 - Compact target/focus readout
 - Prominent live state/subproblem summary

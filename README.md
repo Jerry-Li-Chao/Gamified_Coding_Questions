@@ -1,6 +1,18 @@
-# Searchlight — Gamified Binary Search
+# Algo Arcade — Gamified Coding Questions
 
-An interactive, visual binary-search lesson that connects pointer movement, shrinking subproblems, loop conditions, midpoint arithmetic, and comparisons directly to working Python code.
+Algo Arcade turns coding interview questions into interactive lessons. Each tutorial connects a playful visualization, learner-controlled experiments, plain-language explanations, and a live implementation so the code changes feel physically meaningful.
+
+The project currently includes a complete Binary Search lesson and is structured to grow into a library of algorithm and data-structure tutorials.
+
+## Shared tutorial experience
+
+- Extensible lesson navigation and progress
+- Interactive problem visualization with reversible steps
+- Live code that stays synchronized with learner actions
+- Exact “Why this line?” explanations
+- Manual edge-case and complexity demonstrations
+- Responsive three-pane layout that stacks cleanly on smaller screens
+- Accessible controls with keyboard and reduced-motion support
 
 ## Run locally
 
@@ -12,13 +24,10 @@ python3 -m http.server 4173
 
 Then open [http://localhost:4173](http://localhost:4173).
 
-## Lesson flow
+## Current lessons
 
-1. Place inclusive left and right boundaries.
-2. Explore how the active subproblem changes.
-3. See why `left <= right` preserves the final candidate.
-4. Calculate `mid` using floor division.
-5. Compare and discard half of the candidates.
-6. Return the target index.
+- **Binary Search:** boundaries, shrinking search ranges, loop conditions, midpoint arithmetic, comparisons, and complexity.
 
-The left navigation is structured for future algorithm lessons, while the right-side codebook progressively reveals the final solution.
+## Adding future tutorials
+
+Use the repository-local [`design-gamified-code-tutorials`](.agents/skills/design-gamified-code-tutorials/SKILL.md) skill as the shared design and interaction contract. Keep problem-specific teaching content separate from the reusable lesson shell.
