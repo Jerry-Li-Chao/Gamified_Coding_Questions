@@ -27,6 +27,7 @@ Then open [http://localhost:4173](http://localhost:4173).
 ## Current lessons
 
 - **Binary Search:** boundaries, shrinking search ranges, loop conditions, midpoint arithmetic, comparisons, and complexity.
+- **Search a 2D Matrix:** flattening a row-major matrix, index-to-coordinate mapping, flat binary-search boundaries, and `O(log(m × n))` search.
 
 ## Adding future tutorials
 

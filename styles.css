@@ -51,7 +51,7 @@ button { color: inherit; }
 .nav-item {
   border: 0; background: transparent; width: 100%; min-height: 46px; padding: 0 10px;
   display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: center;
-  text-align: left; color: #789396; border-radius: 8px; margin-bottom: 5px; cursor: pointer;
+  text-align: left; color: #789396; border-radius: 8px; margin-bottom: 5px; cursor: pointer; text-decoration: none;
 }
 .nav-item span:nth-child(2) { font-size: 13px; font-weight: 800; }
 .nav-item em { font-style: normal; font: 500 9px "DM Mono"; color: #496265; }

@@ -4,25 +4,26 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#fff8ed" />
-    <title>Algo Arcade — Gamified Coding Questions</title>
+    <title>Search a 2D Matrix — Algo Arcade</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="matrix.css" />
   </head>
   <body>
     <div class="app-shell">
       <aside class="lesson-nav" aria-label="Algorithm lessons">
-        <a class="brand" href="#" aria-label="Algo Arcade home">
+        <a class="brand" href="index.html" aria-label="Algo Arcade home">
           <span class="brand-mark">A</span>
           <span class="brand-copy"><strong>ALGO ARCADE</strong><small>play through the logic</small></span>
         </a>
 
         <p class="nav-label">SEARCHING</p>
-        <a class="nav-item active" href="index.html" aria-current="page">
+        <a class="nav-item" href="index.html">
           <span class="nav-icon">⌕</span><span>Binary search</span><em>01</em>
         </a>
-        <a class="nav-item" href="search-2d-matrix.html">
+        <a class="nav-item active" href="search-2d-matrix.html" aria-current="page">
           <span class="nav-icon">▦</span><span>Search 2D matrix</span><em>02</em>
         </a>
 
@@ -33,33 +34,31 @@
 
         <div class="nav-footer">
           <div class="progress-ring" id="nav-progress">0%</div>
-          <div><strong>Lesson progress</strong><small id="progress-copy">Set your boundaries</small></div>
+          <div><strong>Lesson progress</strong><small id="progress-copy">Unfold the grid</small></div>
         </div>
       </aside>
 
-      <main class="game-panel">
+      <main class="game-panel matrix-game-panel">
         <header class="game-header">
           <div>
-            <span class="eyebrow">LESSON 01 · SEARCHING</span>
+            <span class="eyebrow">LESSON 02 · SEARCHING</span>
             <div class="lesson-title-row">
-              <h1>Binary Search</h1>
+              <h1>Search a 2D Matrix</h1>
               <button class="problem-button" id="problem-button" type="button" aria-haspopup="dialog">Problem</button>
             </div>
           </div>
           <div class="header-actions">
-            <button class="sound-button" id="histogram-toggle" type="button" aria-pressed="true">▥ <span>Hide heights</span></button>
-            <a class="reference-link" href="https://neetcode.io/problems/binary-search/question?list=neetcode150" target="_blank" rel="noreferrer">NeetCode ↗</a>
+            <button class="sound-button" id="index-toggle" type="button" aria-pressed="false">▦ <span>Show flat indices</span></button>
+            <a class="reference-link" href="https://neetcode.io/problems/search-2d-matrix/question?list=neetcode150" target="_blank" rel="noreferrer">NeetCode ↗</a>
           </div>
         </header>
 
-        <section class="game-world" aria-label="Interactive binary search game">
-          <div class="atmosphere"><span></span><span></span><span></span></div>
-
-          <aside class="tool-rack">
+        <section class="game-world matrix-world" aria-label="Interactive matrix search game">
+          <aside class="tool-rack matrix-tool-rack">
             <span class="tool-rack-label">TOOLS</span>
             <div class="active-pointer-status">
-              <small id="active-pointer-mode">NOW MOVING</small>
-              <strong id="active-pointer-name">LEFT</strong>
+              <small id="active-pointer-mode">EXPLORE</small>
+              <strong id="active-pointer-name">TRAIL</strong>
             </div>
             <button class="pointer-tool left-tool active" data-tool="left" type="button">
               <span class="pointer-glyph">L</span><small>Left</small>
@@ -68,25 +67,25 @@
               <span class="pointer-glyph">R</span><small>Right</small>
             </button>
             <div class="rack-line"></div>
-            <button class="tiny-tool" id="reset-pointers" type="button" title="Reset pointers">↺</button>
+            <button class="tiny-tool" id="reset-lesson" type="button" title="Reset this step" aria-label="Reset this step">↺</button>
           </aside>
 
-          <div class="lesson-stage">
-            <div class="target-readout">
-              <span>Target number we are looking for</span>
-              <strong id="target-value">16</strong>
+          <div class="lesson-stage matrix-stage">
+            <div class="target-readout matrix-target-readout">
+              <span>Target value</span>
+              <strong id="target-value">12</strong>
             </div>
 
-            <p class="range-sentence" id="range-sentence" aria-live="polite">No range selected yet.</p>
+            <p class="range-sentence matrix-summary" id="range-sentence" aria-live="polite">The rows form one continuous sorted trail.</p>
 
-            <div class="array-rig" id="array-rig" aria-label="Sorted array"></div>
+            <div class="matrix-board" id="matrix-board" aria-label="Sorted 3 by 4 matrix"></div>
 
-            <div class="coach-box">
+            <div class="coach-box matrix-coach">
               <div class="coach-avatar" aria-hidden="true"><span>i</span></div>
               <div class="coach-copy">
-                <span class="stage-count" id="stage-count">STEP 1 OF 6</span>
-                <h2 id="coach-title">Mark the search boundaries</h2>
-                <p id="coach-text">Select the <b>Left</b> tool, then place it at index 0. Place the <b>Right</b> tool at index 6.</p>
+                <span class="stage-count" id="stage-count">STEP 1 OF 7</span>
+                <h2 id="coach-title">Unfold the grid</h2>
+                <p id="coach-text">Read each row left to right, then continue at the first cell of the next row.</p>
               </div>
               <div class="coach-actions" id="coach-actions"></div>
             </div>
@@ -101,15 +100,15 @@
           <span class="sync-status"><i></i> LIVE</span>
         </div>
         <div class="code-wrap">
-          <div class="code-tabs"><button class="active">PYTHON</button><button id="notes-tab">NOTES</button></div>
+          <div class="code-tabs"><button class="active" type="button">PYTHON</button><button id="notes-tab" type="button">NOTES</button></div>
           <pre class="code-block" id="code-block" aria-label="Python solution"></pre>
           <div class="code-note" id="code-note">
             <span class="note-pin">✦</span>
-            <div><strong>YOUR CODEBOOK</strong><p>Each idea you master becomes a line of working code.</p></div>
+            <div><strong>YOUR CODEBOOK</strong><p>The flat index lets ordinary binary search travel through a matrix.</p></div>
           </div>
         </div>
         <div class="complexity-strip">
-          <span>TIME <b>O(log n)</b></span>
+          <span>TIME <b>O(log(m·n))</b></span>
           <span>SPACE <b>O(1)</b></span>
           <button class="complexity-why" id="complexity-why" type="button" aria-haspopup="dialog">Why?</button>
         </div>
@@ -123,6 +122,6 @@
       </section>
     </div>
 
-    <script src="app.js"></script>
+    <script src="matrix.js"></script>
   </body>
 </html>
